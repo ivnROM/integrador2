@@ -2,8 +2,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -12,6 +10,7 @@ public class Main extends JFrame {
 
     private JTextField cantidadDeMallasTextField;
     private JButton continuarButton;
+    private JButton confirmacionButton; // Botón de confirmación
     private JPanel mainPanel;
     private CardLayout cardLayout;
 
@@ -81,7 +80,6 @@ public class Main extends JFrame {
                     try {
                         int cantidadComponentes = Integer.parseInt(cantidadComponentesTextField.getText());
                         agregarComponentes(mallaPanel, cantidadComponentes, mallaIndex);
-                        pack(); // ajusta el tamaño de la ventana después de agregar componentes
                     } catch (NumberFormatException ex) {
                         JOptionPane.showMessageDialog(panelMallas, "Ingrese un número válido de componentes");
                     }
@@ -92,7 +90,20 @@ public class Main extends JFrame {
             panelMallas.add(mallaPanel);
         }
 
+        // Botón de confirmación único al final
+        confirmacionButton = new JButton("Confirmar");
+        confirmacionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Acción de confirmación, puedes agregar lo que necesites aquí
+                JOptionPane.showMessageDialog(panelMallas, "Componentes confirmados.");
+            }
+        });
+        panelMallas.add(confirmacionButton); // Agregar el botón al final de la ventana
+
+        // Actualiza el tamaño de la ventana cada vez que cambie el contenido
         mainPanel.add(panelMallas, "mallas");
+        pack();
     }
 
     private void agregarComponentes(JPanel mallaPanel, int cantidadComponentes, int mallaIndex) {
@@ -128,36 +139,34 @@ public class Main extends JFrame {
 
         JTable table = new JTable(model);
 
+        // Cambiar el renderizador para la columna "Corriente" para establecer color
+        table.getColumnModel().getColumn(3).setCellRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                String tipo = (String) table.getValueAt(row, 1); // valor de la columna "Tipo"
+                if ("Fuente de energía".equals(tipo)) {
+                    c.setBackground(Color.GRAY); // Si el tipo es Fuente de energía, poner fondo gris
+                } else {
+                    c.setBackground(Color.WHITE); // Si es Resistencia, poner fondo blanco
+                }
+                return c;
+            }
+        });
+
+        // Configurar la columna "Tipo" con un combo box
         String[] tipos = {"Fuente de energía", "Resistencia"};
         TableColumn tipoColumn = table.getColumnModel().getColumn(1);
         JComboBox<String> tipoComboBox = new JComboBox<>(tipos);
         tipoColumn.setCellEditor(new DefaultCellEditor(tipoComboBox));
 
+        // Configurar la columna "Valor" con un editor de texto
         TableColumn valorColumn = table.getColumnModel().getColumn(2);
         valorColumn.setCellEditor(new DefaultCellEditor(new JTextField()));
 
+        // Modificar la lista de intensidades dependiendo de las mallas
         TableColumn corrienteColumn = table.getColumnModel().getColumn(3);
-        corrienteColumn.setCellEditor(new DefaultCellEditor(new JComboBox<>(new String[]{"I" + (mallaIndex + 1)})));
-
-        // Renderizador personalizado para las filas deshabilitadas
-        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                String tipo = (String) table.getValueAt(row, 1);  // obtenemos el tipo de componente
-
-                // Si el tipo es "Fuente de energía", solo la celda de la columna corriente será deshabilitada
-                if ("Fuente de energía".equals(tipo) && column == 3) {
-                    c.setBackground(Color.LIGHT_GRAY);  // Poner un color de fondo gris
-                } else if ("Resistencia".equals(tipo) && column == 3) {
-                    c.setBackground(Color.WHITE);  // Vuelve al color blanco cuando es "Resistencia"
-                } else {
-                    c.setBackground(Color.WHITE);  // Volver al fondo blanco para otras celdas
-                }
-
-                return c;
-            }
-        });
+        corrienteColumn.setCellEditor(new DefaultCellEditor(new JComboBox<>(getIntensidades(mallaIndex))));
 
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setPreferredSize(new Dimension(500, cantidadComponentes * 30));
@@ -165,7 +174,21 @@ public class Main extends JFrame {
 
         mallaPanel.revalidate();
         mallaPanel.repaint();
+
+        // Actualiza el tamaño de la ventana cada vez que se agregan componentes
+        panelMallas.invalidate();
+        panelMallas.revalidate();
         pack(); // ajusta el tamaño de la ventana según el contenido
+    }
+
+
+    private String[] getIntensidades(int mallaIndex) {
+        // Aquí se deben retornar las intensidades correspondientes por malla
+        String[] intensidades = new String[cantidadDeMallas];
+        for (int i = 0; i < cantidadDeMallas; i++) {
+            intensidades[i] = "I" + (i + 1);  // Asignamos las intensidades de las mallas
+        }
+        return intensidades;
     }
 
     private void continuarButtonSubmit() {
