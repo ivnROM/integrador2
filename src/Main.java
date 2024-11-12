@@ -2,11 +2,13 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class Main extends JFrame {
 
@@ -19,6 +21,8 @@ public class Main extends JFrame {
     private JPanel panelMallas;
 
     private int cantidadDeMallas;
+    private List<Malla> mallasList; // lista para almacenar las mallas
+    private Set<String> intensidadesDisponibles; // conjunto para almacenar las intensidades únicas
 
     public Main() {
         setTitle("Calculadora Kirchhoff");
@@ -34,7 +38,7 @@ public class Main extends JFrame {
 
         cardLayout.show(mainPanel, "inicio");
         pack();
-        setLocationRelativeTo(null); // centra la ventana
+        setLocationRelativeTo(null);
     }
 
     private void initPanelInicio() {
@@ -60,6 +64,8 @@ public class Main extends JFrame {
     private void initPanelMallas() {
         panelMallas = new JPanel();
         panelMallas.setLayout(new BoxLayout(panelMallas, BoxLayout.Y_AXIS));
+        mallasList = new ArrayList<>(); // inicializa la lista de mallas
+        intensidadesDisponibles = new HashSet<>(); // inicializa el conjunto de intensidades
 
         for (int i = 0; i < cantidadDeMallas; i++) {
             JPanel mallaPanel = new JPanel();
@@ -81,7 +87,7 @@ public class Main extends JFrame {
                     try {
                         int cantidadComponentes = Integer.parseInt(cantidadComponentesTextField.getText());
                         agregarComponentes(mallaPanel, cantidadComponentes, mallaIndex);
-                        pack(); // ajusta el tamaño de la ventana después de agregar componentes
+                        pack();
                     } catch (NumberFormatException ex) {
                         JOptionPane.showMessageDialog(panelMallas, "Ingrese un número válido de componentes");
                     }
@@ -92,37 +98,42 @@ public class Main extends JFrame {
             panelMallas.add(mallaPanel);
         }
 
+        JButton calcularButton = new JButton("Calcular Intensidades");
+        calcularButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                calcularIntensidades();
+            }
+        });
+
+        panelMallas.add(calcularButton);
         mainPanel.add(panelMallas, "mallas");
     }
 
     private void agregarComponentes(JPanel mallaPanel, int cantidadComponentes, int mallaIndex) {
         mallaPanel.removeAll();
 
-        // título de la malla, no editable
         JLabel mallaLabel = new JLabel("Malla " + (mallaIndex + 1) + ":");
         mallaPanel.add(mallaLabel);
 
-        // definir las columnas de la tabla
         String[] columnNames = {"Componente", "Tipo", "Valor", "Corriente"};
         Object[][] data = new Object[cantidadComponentes][4];
 
-        // llenamos los datos con los componentes de cada malla
         for (int j = 0; j < cantidadComponentes; j++) {
-            data[j][0] = "Componente " + (j + 1); // nombre del componente
-            data[j][1] = "Fuente de energía"; // valor inicial en la columna tipo
-            data[j][2] = ""; // valor inicial en la columna valor
-            data[j][3] = "";  // columna de corriente vacía
+            data[j][0] = "Componente " + (j + 1);
+            data[j][1] = "Fuente de energía";
+            data[j][2] = "";
+            data[j][3] = ""; // aquí dejaremos la corriente vacía inicialmente
         }
 
         DefaultTableModel model = new DefaultTableModel(data, columnNames) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                // Solo se puede editar la celda de "Corriente" si la columna "Tipo" es "Resistencia"
-                if (column == 3) { // columna de Corriente
-                    String tipo = (String) getValueAt(row, 1); // valor de la columna "Tipo"
-                    return "Resistencia".equals(tipo); // Solo editable si es Resistencia
+                if (column == 3) {
+                    String tipo = (String) getValueAt(row, 1);
+                    return "Resistencia".equals(tipo);
                 }
-                return super.isCellEditable(row, column); // por defecto, otras celdas sí son editables
+                return super.isCellEditable(row, column);
             }
         };
 
@@ -137,24 +148,30 @@ public class Main extends JFrame {
         valorColumn.setCellEditor(new DefaultCellEditor(new JTextField()));
 
         TableColumn corrienteColumn = table.getColumnModel().getColumn(3);
-        corrienteColumn.setCellEditor(new DefaultCellEditor(new JComboBox<>(new String[]{"I" + (mallaIndex + 1)})));
+        JComboBox<String> corrienteComboBox = new JComboBox<>(getIntensidadesDisponibles());
+        corrienteColumn.setCellEditor(new DefaultCellEditor(corrienteComboBox));
 
-        // Renderizador personalizado para las filas deshabilitadas
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                String tipo = (String) table.getValueAt(row, 1);  // obtenemos el tipo de componente
+                return c;
+            }
+        });
 
-                // Si el tipo es "Fuente de energía", solo la celda de la columna corriente será deshabilitada
-                if ("Fuente de energía".equals(tipo) && column == 3) {
-                    c.setBackground(Color.LIGHT_GRAY);  // Poner un color de fondo gris
-                } else if ("Resistencia".equals(tipo) && column == 3) {
-                    c.setBackground(Color.WHITE);  // Vuelve al color blanco cuando es "Resistencia"
-                } else {
-                    c.setBackground(Color.WHITE);  // Volver al fondo blanco para otras celdas
+        // Establecer el color de fondo para la celda de corriente
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (column == 3) { // Solo modificar la celda de corriente
+                    String tipo = (String) table.getValueAt(row, 1);
+                    if ("Fuente de energía".equals(tipo)) {
+                        c.setBackground(Color.GRAY); // Gris si es fuente de energía
+                    } else {
+                        c.setBackground(Color.WHITE); // Blanco si es resistencia
+                    }
                 }
-
                 return c;
             }
         });
@@ -163,9 +180,26 @@ public class Main extends JFrame {
         scrollPane.setPreferredSize(new Dimension(500, cantidadComponentes * 30));
         mallaPanel.add(scrollPane);
 
+        Malla malla = new Malla(table, mallaIndex + 1); // crear la malla
+        mallasList.add(malla); // agregar la malla a la lista
+
         mallaPanel.revalidate();
         mallaPanel.repaint();
-        pack(); // ajusta el tamaño de la ventana según el contenido
+        pack();
+    }
+
+    private String[] getIntensidadesDisponibles() {
+        // Devolvemos las intensidades disponibles como un arreglo de Strings
+        return intensidadesDisponibles.toArray(new String[0]);
+    }
+
+    private void calcularIntensidades() {
+        for (Malla malla : mallasList) {
+            malla.armarEcuacion(); // armar ecuación para cada malla
+        }
+
+        // resolver ecuaciones (requiere implementación)
+        // mostrar los resultados
     }
 
     private void continuarButtonSubmit() {
@@ -188,5 +222,72 @@ public class Main extends JFrame {
         SwingUtilities.invokeLater(() -> {
             new Main().setVisible(true);
         });
+    }
+}
+
+class Malla {
+    private JTable table;
+    private int numeroMalla;
+    private List<Double> resistencias;
+    private List<Double> fuentes;
+    private double totalFuentes; // suma de todas las fuentes en la malla
+    private double totalResistencias; // suma de todas las resistencias en la malla
+
+    public Malla(JTable table, int numeroMalla) {
+        this.table = table;
+        this.numeroMalla = numeroMalla;
+        this.resistencias = new ArrayList<>();
+        this.fuentes = new ArrayList<>();
+        this.totalFuentes = 0.0;
+        this.totalResistencias = 0.0;
+    }
+
+    public void armarEcuacion() {
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+        StringBuilder ecuacion = new StringBuilder();
+
+        for (int row = 0; row < model.getRowCount(); row++) {
+            String tipo = (String) model.getValueAt(row, 1);
+            String valorStr = (String) model.getValueAt(row, 2);
+
+            if (valorStr != null && !valorStr.isEmpty()) {
+                try {
+                    double valor = Double.parseDouble(valorStr);
+
+                    if ("Resistencia".equals(tipo)) {
+                        resistencias.add(valor);
+                        ecuacion.append(" + ").append(valor).append(" * I").append(numeroMalla);
+                    } else if ("Fuente de energía".equals(tipo)) {
+                        fuentes.add(valor);
+                        totalFuentes += valor;
+                        ecuacion.append(" + ").append(valor);
+                    }
+                } catch (NumberFormatException ex) {
+                    System.out.println("Valor inválido en la tabla de componentes de la malla " + numeroMalla);
+                }
+            }
+        }
+
+        System.out.println("Ecuación de la malla " + numeroMalla + ": " + ecuacion.toString() + " = 0");
+    }
+
+    public List<Double> getResistencias() {
+        return resistencias;
+    }
+
+    public List<Double> getFuentes() {
+        return fuentes;
+    }
+
+    public double getTotalFuentes() {
+        return totalFuentes;
+    }
+
+    public double getTotalResistencias() {
+        return totalResistencias;
+    }
+
+    public int getNumeroMalla() {
+        return numeroMalla;
     }
 }
