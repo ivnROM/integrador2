@@ -3,42 +3,40 @@ package logic;
 public class Matrix {
     private double[][] data;
 
-    // Constructor que recibe el número de filas y columnas
+    // primer constructor que recibe el número de filas y columnas
     public Matrix(int rows, int columns) {
         data = new double[rows][columns];
     }
 
-    // Constructor que inicializa la matriz con un arreglo bidimensional
+    // segunda constructor que inicializa la matriz con un array bidimensional
     public Matrix(double[][] coefficients) {
         data = coefficients;
     }
 
-    // Devuelve el valor de un elemento en la matriz
+    // devuelve el valor de un elemento en la matriz
     public double get(int row, int column) {
         return data[row][column];
     }
 
-    // Establece un valor en una posición específica de la matriz
+    // establece un valor en una posición específica de la matriz
     public void set(int row, int column, double value) {
         data[row][column] = value;
     }
 
-    // Devuelve el número de filas
     public int getRowCount() {
         return data.length;
     }
 
-    // Devuelve el número de columnas
     public int getColumnCount() {
         return data[0].length;
     }
 
-    // Devuelve los datos de la matriz (para compatibilidad con CramerSolver)
+    // devuelve los datos de la matriz (para compatibilidad con la clase de CramerSolver)
     public double[][] getData() {
         return data;
     }
 
-    // Método para clonar la matriz
+    // esto clona la matriz
     public Matrix clone() {
         Matrix clone = new Matrix(getRowCount(), getColumnCount());
         for (int i = 0; i < getRowCount(); i++) {
@@ -47,7 +45,7 @@ public class Matrix {
         return clone;
     }
 
-    // Método para calcular el determinante (usando Laplace para matrices mayores a 3x3)
+    // esto calcula el determinante (usando Laplace para matrices mayores a 3x3)
     public double determinant() {
         int n = getRowCount();
         if (n == 1) return data[0][0];
@@ -59,7 +57,7 @@ public class Matrix {
         return det;
     }
 
-    // Método para obtener una submatriz excluyendo una fila y columna específicas
+    // este obtiene una submatriz excluyendo una fila y columna específicas
     private Matrix subMatrix(int excludingRow, int excludingColumn) {
         Matrix subMatrix = new Matrix(getRowCount() - 1, getColumnCount() - 1);
         for (int i = 0, r = 0; i < getRowCount(); i++) {

@@ -12,17 +12,15 @@ public class CramerSolver implements SolverStrategy {
 
         int n = coefficients.getRowCount();
 
-        // Determinante de la matriz principal
         double det = calculateDeterminant(coefficients.getData());
 
         if (det == 0) {
             throw new IllegalArgumentException("El sistema no tiene solución única (determinante = 0).");
         }
 
-        // Array para las soluciones
         double[] solutions = new double[n];
 
-        // Para cada incógnita, calcular el determinante de la matriz modificada
+        // para cada incógnita, se calcula el determinante de la matriz modificada
         for (int i = 0; i < n; i++) {
             double[][] modifiedMatrix = createModifiedMatrix(coefficients.getData(), constants, i);
             double detModified = calculateDeterminant(modifiedMatrix);
@@ -36,7 +34,7 @@ public class CramerSolver implements SolverStrategy {
         int n = matrix.length;
         double[][] modifiedMatrix = new double[n][n];
 
-        // Copiar matriz original y reemplazar la columna indicada por los términos constantes
+        // se copia la matriz original y se reemplaza la columna indicada por los términos constantes
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
                 modifiedMatrix[i][j] = (j == column) ? constants[i] : matrix[i][j];

@@ -25,7 +25,7 @@ public class InputPanel extends JPanel {
         JPanel inputPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
 
-        // Campos para el número de ecuaciones y variables
+        // campos para el número de ecuaciones y variables
         gbc.gridx = 0;
         gbc.gridy = 0;
         contadorEcuaciones = new JLabel(lenguaje.get("equationCount"));
@@ -50,7 +50,7 @@ public class InputPanel extends JPanel {
 
         add(inputPanel, BorderLayout.NORTH);
 
-        // Panel para la matriz de coeficientes y constantes
+        // panel para la matriz de coeficientes y constantes
         matrixPanel = new JPanel();
         add(matrixPanel, BorderLayout.CENTER);
 

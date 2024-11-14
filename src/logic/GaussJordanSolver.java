@@ -7,18 +7,18 @@ public class GaussJordanSolver implements SolverStrategy {
             throw new IllegalArgumentException("GaussJordanSolver requiere un solo parámetro (la matriz aumentada).");
         }
 
-        Matrix augmentedMatrix = (Matrix) params[0];  // Obtenemos la matriz aumentada de los parámetros
+        Matrix augmentedMatrix = (Matrix) params[0];  // obtenemos la matriz aumentada de los parámetros
         int n = augmentedMatrix.getRowCount();
         double[] solutions = new double[n];
 
         for (int i = 0; i < n; i++) {
             double pivot = augmentedMatrix.get(i, i);
             if (pivot == 0) throw new IllegalArgumentException("El sistema no tiene solución única.");
-            // Dividimos la fila por el pivote para normalizar la diagonal
+            // dividimos la fila por un pivote para normalizar la diagonal
             for (int j = 0; j < n + 1; j++) {
                 augmentedMatrix.set(i, j, augmentedMatrix.get(i, j) / pivot);
             }
-            // Eliminamos las demás filas con el pivote actual
+            // se eliminan las demás filas con el pivote actual
             for (int k = 0; k < n; k++) {
                 if (k == i) continue;
                 double factor = augmentedMatrix.get(k, i);
@@ -28,7 +28,7 @@ public class GaussJordanSolver implements SolverStrategy {
             }
         }
 
-        // Asignamos las soluciones (última columna de la matriz aumentada)
+        // asignamos las soluciones (que son la última columna de la matriz aumentada)
         for (int i = 0; i < n; i++) {
             solutions[i] = augmentedMatrix.get(i, n);
         }

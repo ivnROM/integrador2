@@ -20,26 +20,23 @@ public class MainFrame extends JFrame {
     private MessageBundle lenguaje = MessageBundle.getInstance();
 
     public MainFrame() {
+        // el constructor inicializa los componentes visuales principales en la ventana
         setTitle("Sistema de Ecuaciones");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Panel de Entrada y Panel de Resultados
         inputPanel = new InputPanel();
         resultPanel = new ResultPanel();
 
-        // Selector de idioma
         languageSelector = new JComboBox<>(new String[]{"Español", "Português"});
         languageSelector.addActionListener(new LanguageChangeListener());
 
-        // Selector de método
         methodSelector = new JComboBox<>(new String[]{"Cramer", "Gauss-Jordan"});
 
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.add(languageSelector, BorderLayout.EAST);
         topPanel.add(methodSelector, BorderLayout.WEST);
 
-        // Botones
         calculateButton = new JButton(lenguaje.get("calculate"));
         clearButton = new JButton(lenguaje.get("clear"));
 
@@ -53,7 +50,6 @@ public class MainFrame extends JFrame {
         buttonPanel.add(calculateButton);
         buttonPanel.add(clearButton);
 
-        // Añadir componentes al JFrame
         add(topPanel, BorderLayout.NORTH);
         add(inputPanel, BorderLayout.CENTER);
         add(resultPanel, BorderLayout.SOUTH);
@@ -65,6 +61,7 @@ public class MainFrame extends JFrame {
         setVisible(true);
     }
 
+    // listener para ejecutar el cambio de idioma
     private class LanguageChangeListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -78,15 +75,15 @@ public class MainFrame extends JFrame {
         setTitle(lenguaje.get("title"));
         calculateButton.setText(lenguaje.get("calculate"));
         clearButton.setText(lenguaje.get("clear"));
-        inputPanel.updateLanguage();  // llamar a updateLanguage de InputPanel
-        resultPanel.updateLanguage(); // llamar a updateLanguage de ResultPanel
+        inputPanel.updateLanguage();
+        resultPanel.updateLanguage();
     }
 
+    // listener del boton de calcular con el patrón strategy
     private class CalculateButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                // Obtener la cantidad de ecuaciones y variables
                 int equationCount = inputPanel.getEquationCount();
                 int variableCount = inputPanel.getVariableCount();
 
@@ -94,33 +91,30 @@ public class MainFrame extends JFrame {
                 String selectedMethod = (String) methodSelector.getSelectedItem();
                 SolverStrategy solver;
 
-                // Verificar el método seleccionado
                 if ("Cramer".equals(selectedMethod)) {
                     if (equationCount == variableCount) {
-                        // Método de Cramer: obtener la matriz de coeficientes y el vector de constantes
                         Matrix coefficients = inputPanel.getCoefficientMatrix();
                         double[] constants = inputPanel.getConstants();
                         solver = new CramerSolver();
-                        solutions = solver.solve(coefficients, constants);  // Llamada con los parámetros correspondientes
+                        solutions = solver.solve(coefficients, constants);
                     } else {
-                        // Si las dimensiones no coinciden, lanzar una excepción
+                        // excepcion: las dimensiones no coinciden
                         throw new IllegalArgumentException("El método de Cramer requiere una matriz cuadrada.");
                     }
-                } else { // Método de Gauss-Jordan
-                    // Obtener la matriz aumentada para Gauss-Jordan
+                } else {
+                    // Método de Gauss-Jordan
                     Matrix augmentedMatrix = inputPanel.getAugmentedMatrix();
                     solver = new GaussJordanSolver();
                     solutions = solver.solve(augmentedMatrix);  // Llamada con la matriz aumentada
                 }
 
-                // Mostrar los resultados en un nuevo diálogo
                 displayResultDialog(solutions);
 
             } catch (IllegalArgumentException ex) {
-                // Excepción para matrices no cuadradas o problemas con el cálculo
+                // excepción: matrices no cuadradas o problemas con el cálculo
                 JOptionPane.showMessageDialog(MainFrame.this, lenguaje.get("noSqrMatrix"), lenguaje.get("error"), JOptionPane.ERROR_MESSAGE);
             } catch (Exception ex) {
-                // Manejo de excepciones generales (otros posibles errores en la resolución)
+                // excepcion: no hay solución para la ecuación presentada en el input
                 JOptionPane.showMessageDialog(MainFrame.this, lenguaje.get("noSolution"), lenguaje.get("error"), JOptionPane.ERROR_MESSAGE);
             }
         }

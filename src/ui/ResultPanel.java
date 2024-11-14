@@ -30,7 +30,6 @@ public class ResultPanel extends JPanel {
     }
 
     public void updateLanguage() {
-        // Si querés traducir el contenido mostrado, actualizá el mensaje de cada variable en el área de resultados
         String currentText = resultArea.getText();
         if (!currentText.isEmpty()) {
             String[] lines = currentText.split("\n");
