@@ -5,9 +5,21 @@ import java.util.ResourceBundle;
 import java.util.MissingResourceException;
 
 public class MessageBundle {
-    private static ResourceBundle bundle = ResourceBundle.getBundle("localization.messages", new Locale("es", "ES"));
+    private static MessageBundle instance;
+    private ResourceBundle bundle;
 
-    public static String get(String key) {
+    private MessageBundle(Locale locale) {
+        bundle = ResourceBundle.getBundle("localization.messages", locale);
+    }
+
+    public static MessageBundle getInstance() {
+        if (instance == null) {
+            instance = new MessageBundle(new Locale("es", "ES"));
+        }
+        return instance;
+    }
+
+    public String get(String key) {
         try {
             return bundle.getString(key);
         } catch (MissingResourceException e) {
@@ -16,9 +28,8 @@ public class MessageBundle {
         }
     }
 
-    public static void setLanguage(String languageCode) {
+    public void setLanguage(String languageCode) {
         try {
-            // permite configurar el idioma y el país (opcional)
             Locale locale = new Locale(languageCode);
             bundle = ResourceBundle.getBundle("localization.messages", locale);
             System.out.println("Idioma cambiado a: " + locale.getLanguage());

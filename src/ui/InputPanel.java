@@ -16,6 +16,8 @@ public class InputPanel extends JPanel {
     private JButton generateButton;
     JLabel contadorEcuaciones;
     JLabel contadorVariables;
+    private MessageBundle lenguaje = MessageBundle.getInstance();
+
 
     public InputPanel() {
         setLayout(new BorderLayout());
@@ -26,7 +28,7 @@ public class InputPanel extends JPanel {
         // Campos para el número de ecuaciones y variables
         gbc.gridx = 0;
         gbc.gridy = 0;
-        contadorEcuaciones = new JLabel(MessageBundle.get("equationCount"));
+        contadorEcuaciones = new JLabel(lenguaje.get("equationCount"));
         inputPanel.add(contadorEcuaciones, gbc);
         equationCountField = new JTextField(2);
         gbc.gridx = 1;
@@ -34,13 +36,13 @@ public class InputPanel extends JPanel {
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        contadorVariables = new JLabel(MessageBundle.get("variableCount"));
+        contadorVariables = new JLabel(lenguaje.get("variableCount"));
         inputPanel.add(contadorVariables, gbc);
         variableCountField = new JTextField(2);
         gbc.gridx = 1;
         inputPanel.add(variableCountField, gbc);
 
-        generateButton = new JButton(MessageBundle.get("generateM"));
+        generateButton = new JButton(lenguaje.get("generateM"));
         gbc.gridx = 0;
         gbc.gridy = 2;
         gbc.gridwidth = 2;
@@ -89,7 +91,7 @@ public class InputPanel extends JPanel {
             repaint();
 
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, MessageBundle.get("invalidEq"), MessageBundle.get("error"), JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, lenguaje.get("invalidEq"), lenguaje.get("error"), JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -156,8 +158,8 @@ public class InputPanel extends JPanel {
     }
 
     public void updateLanguage() {
-        contadorEcuaciones.setText(MessageBundle.get("equationCount"));
-        contadorVariables.setText(MessageBundle.get("variableCount"));
-        generateButton.setText(MessageBundle.get("generateM"));
+        contadorEcuaciones.setText(lenguaje.get("equationCount"));
+        contadorVariables.setText(lenguaje.get("variableCount"));
+        generateButton.setText(lenguaje.get("generateM"));
     }
 }

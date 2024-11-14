@@ -5,6 +5,7 @@ import localization.MessageBundle;
 
 public class ResultPanel extends JPanel {
     private JTextArea resultArea;
+    private MessageBundle lenguaje = MessageBundle.getInstance();
 
     public ResultPanel() {
         resultArea = new JTextArea(5, 30);
@@ -15,7 +16,7 @@ public class ResultPanel extends JPanel {
     public void displayResults(double[] solutions) {
         StringBuilder results = new StringBuilder();
         for (int i = 0; i < solutions.length; i++) {
-            results.append(MessageBundle.get("variable")).append(" ").append(i + 1).append(": ").append(solutions[i]).append("\n");
+            results.append(lenguaje.get("variable")).append(" ").append(i + 1).append(": ").append(solutions[i]).append("\n");
         }
         resultArea.setText(results.toString());
     }
@@ -37,7 +38,7 @@ public class ResultPanel extends JPanel {
             for (String line : lines) {
                 if (line.startsWith("variable")) {
                     String[] parts = line.split(":");
-                    updatedText.append(MessageBundle.get("variable")).append(parts[0].substring(8)).append(":").append(parts[1]).append("\n");
+                    updatedText.append(lenguaje.get("variable")).append(parts[0].substring(8)).append(":").append(parts[1]).append("\n");
                 } else {
                     updatedText.append(line).append("\n");
                 }

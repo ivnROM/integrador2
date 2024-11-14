@@ -1,9 +1,16 @@
 package logic;
 
-public class CramerSolver {
+public class CramerSolver implements SolverStrategy {
+    @Override
+    public double[] solve(Object... params) {
+        if (params.length != 2) {
+            throw new IllegalArgumentException("Se requieren dos parámetros: la matriz de coeficientes y el vector de constantes.");
+        }
 
-    public static double[] solve(Matrix coefficients, double[] constants) {
-        int n = coefficients.getRowCount();  // Cambiado de getRows() a getRowCount()
+        Matrix coefficients = (Matrix) params[0];
+        double[] constants = (double[]) params[1];
+
+        int n = coefficients.getRowCount();
 
         // Determinante de la matriz principal
         double det = calculateDeterminant(coefficients.getData());

@@ -8,6 +8,7 @@ import localization.MessageBundle;
 import logic.CramerSolver;
 import logic.GaussJordanSolver;
 import logic.Matrix;
+import logic.SolverStrategy;
 
 public class MainFrame extends JFrame {
     private InputPanel inputPanel;
@@ -16,6 +17,7 @@ public class MainFrame extends JFrame {
     private JComboBox<String> methodSelector;
     private JButton calculateButton;
     private JButton clearButton;
+    private MessageBundle lenguaje = MessageBundle.getInstance();
 
     public MainFrame() {
         setTitle("Sistema de Ecuaciones");
@@ -38,8 +40,8 @@ public class MainFrame extends JFrame {
         topPanel.add(methodSelector, BorderLayout.WEST);
 
         // Botones
-        calculateButton = new JButton(MessageBundle.get("calculate"));
-        clearButton = new JButton(MessageBundle.get("clear"));
+        calculateButton = new JButton(lenguaje.get("calculate"));
+        clearButton = new JButton(lenguaje.get("clear"));
 
         calculateButton.addActionListener(new CalculateButtonListener());
         clearButton.addActionListener(e -> {
@@ -67,15 +69,15 @@ public class MainFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             String selectedLanguage = (String) languageSelector.getSelectedItem();
-            MessageBundle.setLanguage(selectedLanguage.equals("Español") ? "es" : "pt");
+            lenguaje.setLanguage(selectedLanguage.equals("Español") ? "es" : "pt");
             updateLanguage();
         }
     }
 
     private void updateLanguage() {
-        setTitle(MessageBundle.get("title"));
-        calculateButton.setText(MessageBundle.get("calculate"));
-        clearButton.setText(MessageBundle.get("clear"));
+        setTitle(lenguaje.get("title"));
+        calculateButton.setText(lenguaje.get("calculate"));
+        clearButton.setText(lenguaje.get("clear"));
         inputPanel.updateLanguage();  // llamar a updateLanguage de InputPanel
         resultPanel.updateLanguage(); // llamar a updateLanguage de ResultPanel
     }
@@ -84,40 +86,51 @@ public class MainFrame extends JFrame {
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
+                // Obtener la cantidad de ecuaciones y variables
                 int equationCount = inputPanel.getEquationCount();
                 int variableCount = inputPanel.getVariableCount();
 
                 double[] solutions;
                 String selectedMethod = (String) methodSelector.getSelectedItem();
+                SolverStrategy solver;
 
+                // Verificar el método seleccionado
                 if ("Cramer".equals(selectedMethod)) {
                     if (equationCount == variableCount) {
+                        // Método de Cramer: obtener la matriz de coeficientes y el vector de constantes
                         Matrix coefficients = inputPanel.getCoefficientMatrix();
                         double[] constants = inputPanel.getConstants();
-                        solutions = CramerSolver.solve(coefficients, constants);
+                        solver = new CramerSolver();
+                        solutions = solver.solve(coefficients, constants);  // Llamada con los parámetros correspondientes
                     } else {
+                        // Si las dimensiones no coinciden, lanzar una excepción
                         throw new IllegalArgumentException("El método de Cramer requiere una matriz cuadrada.");
                     }
-                } else { // Gauss-Jordan
+                } else { // Método de Gauss-Jordan
+                    // Obtener la matriz aumentada para Gauss-Jordan
                     Matrix augmentedMatrix = inputPanel.getAugmentedMatrix();
-                    solutions = GaussJordanSolver.solve(augmentedMatrix);
+                    solver = new GaussJordanSolver();
+                    solutions = solver.solve(augmentedMatrix);  // Llamada con la matriz aumentada
                 }
 
                 // Mostrar los resultados en un nuevo diálogo
                 displayResultDialog(solutions);
 
             } catch (IllegalArgumentException ex) {
-                JOptionPane.showMessageDialog(MainFrame.this, MessageBundle.get("noSqrMatrix"), MessageBundle.get("error"), JOptionPane.ERROR_MESSAGE);
+                // Excepción para matrices no cuadradas o problemas con el cálculo
+                JOptionPane.showMessageDialog(MainFrame.this, lenguaje.get("noSqrMatrix"), lenguaje.get("error"), JOptionPane.ERROR_MESSAGE);
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(MainFrame.this, MessageBundle.get("noSolution"), MessageBundle.get("error"), JOptionPane.ERROR_MESSAGE);
+                // Manejo de excepciones generales (otros posibles errores en la resolución)
+                JOptionPane.showMessageDialog(MainFrame.this, lenguaje.get("noSolution"), lenguaje.get("error"), JOptionPane.ERROR_MESSAGE);
             }
         }
     }
 
+
     private void displayResultDialog(double[] solutions) {
-        StringBuilder resultText = new StringBuilder(MessageBundle.get("results")).append(":\n");
+        StringBuilder resultText = new StringBuilder(lenguaje.get("results")).append(":\n");
         for (int i = 0; i < solutions.length; i++) {
-            resultText.append(MessageBundle.get("variable")).append(" ").append(i + 1).append(" = ").append(solutions[i]).append("\n");
+            resultText.append(lenguaje.get("variable")).append(" ").append(i + 1).append(" = ").append(solutions[i]).append("\n");
         }
 
         JTextArea resultArea = new JTextArea(resultText.toString());
@@ -127,7 +140,7 @@ public class MainFrame extends JFrame {
         JScrollPane scrollPane = new JScrollPane(resultArea);
         scrollPane.setPreferredSize(new Dimension(300, 200));
 
-        JOptionPane.showMessageDialog(this, scrollPane, MessageBundle.get("results"), JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, scrollPane, lenguaje.get("results"), JOptionPane.INFORMATION_MESSAGE);
     }
 
     public static void main(String[] args) {
